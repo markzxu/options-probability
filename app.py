@@ -1,7 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Output, Input
+from dash.dependencies import Output, Input, State
 import pandas as pd
 import plotly.graph_objs as go
 
@@ -14,67 +14,32 @@ df = pd.read_csv(
     'gdp-life-exp-2007.csv')
 
 
+def get_dates():
+    return ['2003-02-19', '2003-02-20']
+
+
 app.layout = html.Div([
     dcc.Dropdown(
-        id='demo-dropdown',
-        options=[
-            {'label': 'New York City', 'value': 'NYC'},
-            {'label': 'Montreal', 'value': 'MTL'},
-            {'label': 'San Francisco', 'value': 'SF'}
-        ],
-        value='NYC'
-    ),
-    dcc.Dropdown(
-        id='demo-dropdown2',
-        options=[
-            {'label': 'New York City', 'value': 'NYC'},
-            {'label': 'Montreal', 'value': 'MTL'},
-            {'label': 'San Francisco', 'value': 'SF'}
-        ],
-        value='NYC'
+        id='date-dropdown',
+        options=[{'label': d, 'value': d} for d in get_dates()],
+        value=get_dates()[0]
     ),
     dcc.Input(
-            id="input",
+            id="ticker-input",
             type="text",
-            placeholder="APPL",
+            placeholder="Ticker Symbol",
     ),
-    html.Button('Click Me', id='button'),
-    dcc.Graph(
-        id='life-exp-vs-gdp',
-        figure={
-            'data': [
-                go.Scatter(
-                    x=df[df['continent'] == i]['gdp per capita'],
-                    y=df[df['continent'] == i]['life expectancy'],
-                    text=df[df['continent'] == i]['country'],
-                    mode='markers',
-                    opacity=0.8,
-                    marker={
-                        'size': 15,
-                        'line': {'width': 0.5, 'color': 'white'}
-                    },
-                    name=i
-                ) for i in df.continent.unique()
-            ],
-            'layout': go.Layout(
-                xaxis={'type': 'log', 'title': 'GDP Per Capita'},
-                yaxis={'title': 'Life Expectancy'},
-                margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-                legend={'x': 0, 'y': 1},
-                hovermode='closest'
-            )
-        }
-    ),
+    html.Button('Get Distribution', id='button'),
     html.Div(id='output-container'),
 ])
 
 @app.callback(Output('output-container', 'children'),
-              [Input('button', 'n_clicks')]
+              [Input('button', 'n_clicks')],
+              state=[State('date-dropdown', 'value'),
+                     State('ticker-input', 'value')]
 )
-def update(text):
-    print(dash.callback_context.triggered)
-    print(text)
-    return text
+def update(n_clicks, date, ticker):
+    return date + " " + ticker
 
 if __name__ == '__main__':
     app.run_server()
