@@ -13,7 +13,7 @@ def op_ch_to_cdf(calls):
 
     # theoretical price of 0 call ~= price of lowest call + (lowest strike)/contract size
     # theoretical price of infinity call ~= 0
-    contract_size = 100 if calls.contractSize[0] == "REGULAR" else 0 # fix
+    contract_size = 100 if calls.contractSize[0] == "REGULAR" else 0  # fix
     zero_call = mid[0] + calls['strike'][0] / contract_size
     probs = [cur-nxt for cur, nxt in zip([zero_call] + mid, mid+[0])]
 
@@ -21,11 +21,12 @@ def op_ch_to_cdf(calls):
     s = sum(probs)
     probs = [x/s for x in probs]
 
-    range = [0] + calls['strike'].to_list()
+    range_start = [0] + calls['strike'].to_list()
 
     return pd.DataFrame(
-        data={'range_start': range, 'prob' : probs }
+        data={'range_start': range_start, 'prob': probs}
     )
+
 
 def get_option_chain(symbol, date=None):
     """
