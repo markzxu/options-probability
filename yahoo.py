@@ -8,20 +8,24 @@ def op_ch_to_cdf(calls):
     :param calls: Calls of an option chain
     :return: Probability distribution as a pandas dataframe
     """
-    mid = calls['mid'] = [(b+a)/2 for b, a in zip(calls['bid'], calls['ask'])]
+    calls = calls[calls.bid.notnull() & calls.ask.notnull()]
+
+    print(calls.columns)
+    now = pd.Timestamp.now()
+    calls = calls.loc[calls.lastTradeDate.apply(lambda t: (now - t).days <= 3)]
+
+    mid = [(b+a)/2 for b, a in zip(calls['bid'], calls['ask'])]
 
     # theoretical price of 0 call ~= price of lowest call + (lowest strike)/contract size
     # theoretical price of infinity call ~= 0
-    assert calls.contractSize[0] == "REGULAR"
+    assert all(calls.contractSize == "REGULAR")
     contract_size = 100
-    zero_call = mid[0] + calls['strike'][0] / contract_size
+    zero_call = mid[0] + calls['strike'].iloc[0] / contract_size
     probs = [cur-nxt for cur, nxt in zip([zero_call] + mid, mid+[0])]
 
     strike = [0] + calls['strike'].to_list()
-    probs, strike = zip(*[(p,s) for p, s in zip(probs, strike) if not np.isnan(p)])
     # normalize
     s = sum(probs)
-    print(s)
     probs = [x/s for x in probs]
 
     return pd.DataFrame(
