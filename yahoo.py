@@ -30,6 +30,7 @@ def op_ch_to_cdf(calls):
 def get_option_chain(symbol, date=None):
     """
     :param symbol: a ticker symbol
+    :param date: string in ISO format
     :return: Option chain for that ticker symbol
     """
     ticker = yf.Ticker(symbol)
@@ -39,3 +40,11 @@ def get_option_chain(symbol, date=None):
 
 def cdf(symbol, date=None):
     return op_ch_to_cdf(get_option_chain(symbol, date))
+
+
+def get_dates(symbol):
+    return yf.Ticker(symbol).options
+
+
+'''if __name__ == "__main__":
+    print(get_dates("MSFT"))'''
