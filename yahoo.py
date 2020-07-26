@@ -8,23 +8,24 @@ def op_ch_to_cdf(calls):
     :param calls: Calls of an option chain
     :return: Probability distribution as a pandas dataframe
     """
-
     mid = calls['mid'] = [(b+a)/2 for b, a in zip(calls['bid'], calls['ask'])]
 
     # theoretical price of 0 call ~= price of lowest call + (lowest strike)/contract size
     # theoretical price of infinity call ~= 0
-    contract_size = 100 if calls.contractSize[0] == "REGULAR" else 0  # fix
+    assert calls.contractSize[0] == "REGULAR"
+    contract_size = 100
     zero_call = mid[0] + calls['strike'][0] / contract_size
     probs = [cur-nxt for cur, nxt in zip([zero_call] + mid, mid+[0])]
 
+    strike = [0] + calls['strike'].to_list()
+    probs, strike = zip(*[(p,s) for p, s in zip(probs, strike) if not np.isnan(p)])
     # normalize
     s = sum(probs)
+    print(s)
     probs = [x/s for x in probs]
 
-    range_start = [0] + calls['strike'].to_list()
-
     return pd.DataFrame(
-        data={'range_start': range_start, 'prob': probs}
+        data={'range_start': strike, 'prob': probs}
     )
 
 
@@ -47,5 +48,5 @@ def get_dates(symbol):
     return yf.Ticker(symbol).options
 
 
-'''if __name__ == "__main__":
-    print(get_dates("MSFT"))'''
+if __name__ == "__main__":
+    print(cdf("AAPL"))
